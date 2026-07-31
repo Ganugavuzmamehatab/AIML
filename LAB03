@@ -1,36 +1,49 @@
-import pandas as pd
+import csv
 
-# Create the dataset
-data = {
-    "Latency Sensitivity": ["High", "High", "High", "Low", "High"],
-    "Data Volume": ["Large", "Small", "Large", "Large", "Large"],
-    "RAM Demand": ["High", "High", "High", "Medium", "High"],
-    "Network Bandwidth": ["Dedicated", "Shared", "Shared", "Shared", "Dedicated"],
-    "GPU Required": ["Yes", "Yes", "Yes", "No", "No"],
-    "High-Performance Edge": ["Yes", "No", "Yes", "No", "Yes"]
-}
+# Dataset
+dataset = [
+    ["High", "Large", "High", "Dedicated", "Yes", "Yes"],
+    ["High", "Small", "High", "Shared", "Yes", "No"],
+    ["High", "Large", "High", "Shared", "Yes", "Yes"],
+    ["Low", "Large", "Medium", "Shared", "No", "No"],
+    ["High", "Large", "High", "Dedicated", "No", "Yes"]
+]
 
-# Convert to DataFrame
-df = pd.DataFrame(data)
+# Save dataset as CSV
+with open("workload_data.csv", "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow([
+        "Latency Sensitivity",
+        "Data Volume",
+        "RAM Demand",
+        "Network Bandwidth",
+        "GPU Required",
+        "High-Performance Edge"
+    ])
+    writer.writerows(dataset)
 
-# Save as CSV
-df.to_csv("workload_data.csv", index=False)
-
-# Load the dataset
-dataset = pd.read_csv("workload_data.csv")
+# Read dataset from CSV
+data = []
+with open("workload_data.csv", "r") as file:
+    reader = csv.reader(file)
+    header = next(reader)
+    for row in reader:
+        data.append(row)
 
 print("===== DATASET =====")
-print(dataset)
+print(header)
+for row in data:
+    print(row)
 
-# Initialize the most specific hypothesis
-hypothesis = ['0'] * (len(dataset.columns) - 1)
+# Initialize hypothesis
+hypothesis = ['0'] * (len(header) - 1)
 
 print("\nInitial Hypothesis:")
 print(hypothesis)
 
 # Find-S Algorithm
-for i, row in dataset.iterrows():
-    if row["High-Performance Edge"] == "Yes":
+for i, row in enumerate(data):
+    if row[-1] == "Yes":
         for j in range(len(hypothesis)):
             if hypothesis[j] == '0':
                 hypothesis[j] = row[j]
