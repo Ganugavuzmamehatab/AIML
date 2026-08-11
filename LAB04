@@ -1,0 +1,125 @@
+# Candidate Elimination Algorithm
+# Implementation without using scikit-learn
+
+# Training dataset
+data = [
+    ["Sunny", "Warm", "Normal", "Strong", "Yes"],
+    ["Sunny", "Warm", "High", "Strong", "Yes"],
+    ["Rainy", "Cold", "High", "Strong", "No"],
+    ["Sunny", "Warm", "High", "Weak", "Yes"]
+]
+
+# Attribute names
+attributes = ["Sky", "AirTemp", "Humidity", "Wind"]
+
+# Initialize Specific Boundary (S)
+S = ["Ø", "Ø", "Ø", "Ø"]
+
+# Initialize General Boundary (G)
+G = [["?", "?", "?", "?"]]
+
+
+# Function to check whether a hypothesis covers an instance
+def covers(hypothesis, instance):
+    for h, x in zip(hypothesis, instance):
+        if h != "?" and h != x:
+            return False
+    return True
+
+
+# Function to generalize S for a positive example
+def generalize_s(S, instance):
+    new_S = S.copy()
+
+    for i in range(len(S)):
+        if S[i] == "Ø":
+            new_S[i] = instance[i]
+        elif S[i] != instance[i]:
+            new_S[i] = "?"
+
+    return new_S
+
+
+# Function to specialize G for a negative example
+def specialize_g(G, S, instance):
+    new_G = []
+
+    domains = [
+        ["Sunny", "Rainy"],
+        ["Warm", "Cold"],
+        ["Normal", "High"],
+        ["Strong", "Weak"]
+    ]
+
+    for hypothesis in G:
+        if covers(hypothesis, instance):
+            for i in range(len(hypothesis)):
+                if hypothesis[i] == "?":
+                    for value in domains[i]:
+                        if value != instance[i]:
+                            new_hypothesis = hypothesis.copy()
+                            new_hypothesis[i] = value
+
+                            # Keep only hypotheses that are
+                            # more general than or equal to S
+                            valid = True
+
+                            for j in range(len(S)):
+                                if S[j] != "?" and S[j] != "Ø":
+                                    if new_hypothesis[j] != "?" and \
+                                       new_hypothesis[j] != S[j]:
+                                        valid = False
+                                        break
+
+                            if valid:
+                                new_G.append(new_hypothesis)
+        else:
+            new_G.append(hypothesis)
+
+    return new_G
+
+
+# Candidate Elimination Algorithm
+for step, row in enumerate(data, start=1):
+
+    instance = row[:-1]
+    target = row[-1]
+
+    print("\n======================================")
+    print("Processing D" + str(step))
+    print("Instance :", instance)
+    print("Target   :", target)
+    print("======================================")
+
+    if target == "Yes":
+
+        # Generalize S to cover positive instance
+        S = generalize_s(S, instance)
+
+        # Remove hypotheses from G that do not cover positive instance
+        G = [g for g in G if covers(g, instance)]
+
+    else:
+
+        # Specialize G to exclude negative instance
+        G = specialize_g(G, S, instance)
+
+    print("Specific Boundary (S):")
+    print(S)
+
+    print("General Boundary (G):")
+    for g in G:
+        print(g)
+
+
+# Final Version Space
+print("\n\n======================================")
+print("FINAL VERSION SPACE")
+print("======================================")
+
+print("\nMost Specific Boundary (S):")
+print(S)
+
+print("\nMost General Boundary (G):")
+for g in G:
+    print(g)
